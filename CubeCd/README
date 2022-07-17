@@ -1,0 +1,18 @@
+A file named Cube.stl must be located in constant/triSurface
+The cube must haev side lengths of 1mm.
+
+To run:
+
+In linux go to this directory.
+
+Set up geometry by typing these commands:
+
+blockMesh
+
+surfaceFeatureExtract
+
+snappyHexMesh
+
+Then, open the new folder called '3'. copy the contents into the constant folder. Finally run
+
+simpleFoam

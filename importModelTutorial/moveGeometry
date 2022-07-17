@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -rf constant/polymesh
+cp -r 2/polymesh constant
+rm -rf 1
+rm -rf 2

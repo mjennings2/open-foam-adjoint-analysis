@@ -1,0 +1,133 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager singleRun;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+
+        solutionControls
+        {
+            consistent yes;
+            nIters 1000;
+            residualControl
+            {
+                "p.*"       1.e-6;
+                "U.*"       1.e-6;
+            }
+            averaging
+            {
+                average     true;
+                startIter   850;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            adjS1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type incompressible;
+                    objectiveNames
+                    {
+                        lift
+                        {
+                            weight     0.75;
+                            type       force;
+                            patches    (Cube);
+                            direction  (0 0 1);
+                            Aref       1;
+                            rhoInf     1.225;
+                            UInf       25;
+                        }
+                        drag
+                        {
+                            weight     0.25;
+                            type       force;
+                            patches    (Cube);
+                            direction  (1 0 0);
+                            Aref       1;
+                            rhoInf     1.225;
+                            UInf       25;
+                        }
+                    }
+                }
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel          standard;
+                    extraConvection   0;
+                    nSmooth           0;
+                    zeroATCPatchTypes (wall patch);
+                    maskType          pointCells;
+                }
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    consistent yes;
+                    nIters 1000;
+                    residualControl
+                    {
+                        "pa.*"       1.e-5;
+                        "Ua.*"       1.e-5;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+optimisation
+{
+    sensitivities
+    {
+        type               surfacePoints;
+        patches            (Cube);
+        includeSurfaceArea false;
+        adjointEikonalSolver
+        {
+            tolerance 1.e-5;
+            iters     1000;
+            epsilon   0.1;
+        }
+    }
+}
+
+// ************************************************************************* //
